@@ -1,4 +1,5 @@
 #import "MigrateLocalStorage.h"
+#import <Cordova/CDVViewController.h>
 
 @implementation MigrateLocalStorage
 
@@ -32,6 +33,26 @@
 
     NSString* appLibraryFolder = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     NSString* original;
+    
+    CDVViewController* vController = (CDVViewController*)self.viewController;
+    NSURL* mainURL = [NSURL URLWithString:vController.startPage];
+    NSMutableString* targetFileName = [[NSMutableString alloc]init];
+    if([mainURL scheme] == nil) {
+        [targetFileName appendString:(@"file__0")];
+    }
+    else {
+        [targetFileName appendString:([mainURL scheme])];
+        [targetFileName appendString:(@"_")];
+        if(!([[mainURL host] isEqualToString:@"localhost"] || [[mainURL host] isEqualToString:@"127.0.0.1"])) {
+            return;
+        }
+        [targetFileName appendString:([mainURL host])];
+        if([mainURL port] != nil) {
+            [targetFileName appendString:(@"_")];
+            [targetFileName appendString:([[mainURL port] stringValue])];
+        }
+    }
+    [targetFileName appendString:(@".localstorage")];
 
     if ([[NSFileManager defaultManager] fileExistsAtPath:[appLibraryFolder stringByAppendingPathComponent:@"WebKit/LocalStorage/file__0.localstorage"]]) {
         original = [appLibraryFolder stringByAppendingPathComponent:@"WebKit/LocalStorage"];
@@ -49,8 +70,8 @@
     target = [target stringByAppendingPathComponent:bundleIdentifier];
 #endif
 
-    target = [target stringByAppendingPathComponent:@"WebsiteData/LocalStorage/file__0.localstorage"];
 
+    target = [[target stringByAppendingPathComponent:@"WebsiteData/LocalStorage/"] stringByAppendingPathComponent:targetFileName];
     // Only copy data if no existing localstorage data exists yet for wkwebview
     if (![[NSFileManager defaultManager] fileExistsAtPath:target]) {
         NSLog(@"No existing localstorage data found for WKWebView. Migrating data from UIWebView");
