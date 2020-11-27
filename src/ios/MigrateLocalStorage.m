@@ -2,14 +2,22 @@
 #import <Cordova/CDVViewController.h>
 #import <sqlite3.h>
 
+BOOL migrating = NO;
+
 @implementation MigrateLocalStorage
 
 - (BOOL) copyFrom:(NSString*)src to:(NSString*)dest
 {
     NSFileManager* fileManager = [NSFileManager defaultManager];
+    NSString* flagFile = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"WebKit/WebsiteData/MIGRATED"];
 
     // Bail out if source file does not exist
     if (![fileManager fileExistsAtPath:src]) {
+        return NO;
+    }
+
+    // Bail if flag file exists and plugin is currently not migrating
+    if ([fileManager fileExistsAtPath:flagFile] && !migrating) {
         return NO;
     }
 
@@ -22,8 +30,14 @@
     if (![fileManager createDirectoryAtPath:[dest stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]) {
         return NO;
     }
+    
+    // Create flag file after checks passed and the file does not yet exist
+    if (![fileManager fileExistsAtPath:flagFile]) {
+        [fileManager createFileAtPath:flagFile contents:nil attributes:nil];
+    }
 
     // copy src to dest
+    migrating = YES;
     NSError* err;
     BOOL res =[fileManager copyItemAtPath:src toPath:dest error:&err];
     return res;
@@ -32,14 +46,15 @@
 - (BOOL) moveFrom:(NSString*)src to:(NSString*)dest
 {
     NSFileManager* fileManager = [NSFileManager defaultManager];
+    NSString* flagFile = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"MIGRATED"];
     
     // Bail out if source file does not exist
     if (![fileManager fileExistsAtPath:src]) {
         return NO;
     }
-    
-    // Bail out if dest file exists
-    if ([fileManager fileExistsAtPath:dest]) {
+
+    // Bail if flag file exists and plugin is currently not migrating
+    if ([fileManager fileExistsAtPath:flagFile] && !migrating) {
         return NO;
     }
     
@@ -47,8 +62,14 @@
     if (![fileManager createDirectoryAtPath:[dest stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]) {
         return NO;
     }
+
+    // Create flag file after checks passed and the file does not yet exist
+    if (![fileManager fileExistsAtPath:flagFile]) {
+        [fileManager createFileAtPath:flagFile contents:nil attributes:nil];
+    }
     
     // copy src to dest
+    migrating = YES;
     return [fileManager moveItemAtPath:src toPath:dest error:nil];
 }
 
