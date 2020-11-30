@@ -169,7 +169,7 @@
     target = [target stringByAppendingPathComponent:bundleIdentifier];
 #endif
     
-    target = [[target stringByAppendingPathComponent:@"WebsiteData/IndexedDB/httpsionic"] stringByAppendingPathComponent:(targetName)];
+    target = [[target stringByAppendingPathComponent:@"WebsiteData/IndexedDB/http_localhost_8080"] stringByAppendingPathComponent:(targetName)];
     
     // Copy IndexedDB directory
     if (![[NSFileManager defaultManager] fileExistsAtPath:target]) {
