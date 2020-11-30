@@ -160,7 +160,7 @@
     NSString* original;
     NSString* target;
     
-    original = [appLibraryFolder stringByAppendingPathComponent:(@"Caches/___IndexedDB/file__0")];
+    original = [appLibraryFolder stringByAppendingPathComponent:(@"Caches/___IndexedDB/v1/file__0")];
     target = [appLibraryFolder stringByAppendingPathComponent:@"WebKit"];
     
 #if TARGET_IPHONE_SIMULATOR
